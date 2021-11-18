@@ -16,17 +16,17 @@
   'use strict';
 
   let btn = document.createElement("button");
-  btn.setAttribute("id", "my-awesome-job-extractor");
-  btn.innerHTML = "Log top 5 referrals";
+  btn.setAttribute("id", "my-awesome-extractor-button");
+  btn.innerHTML = "Extract Data";
   btn.style.position = 'fixed';
   btn.style.top = '1px'
   btn.style.right = '1px'
   btn.style.zIndex = '100000';
   document.body.appendChild(btn);
 
-  document.getElementById('my-awesome-job-extractor').onclick = function(){
+  document.getElementById('my-awesome-extractor-button').onclick = function(){
       console.clear();
-
+      let websiteName = document.querySelector(".websiteHeader-captionText").innerText
       let country = document.querySelector(".js-countryRank .websiteRanks-name")
       country = country != null ? country.innerText : ''
 
@@ -103,11 +103,13 @@
       let top_4_received_referrals = isNaN(top_4_referring_site) ? 0 : (total_visitors * (referral_traffic_percent / 100)) * (top_4_referring_site / 100)
       let top_5_received_referrals = isNaN(top_5_referring_site) ? 0 : (total_visitors * (referral_traffic_percent / 100)) * (top_5_referring_site / 100)
 
+      let websiteRank = document.querySelector(".js-categoryRank > .websiteRanks-valueContainer").innerText
+
       table.innerHTML = `
       <tbody>
         <tr>
           <td style='border-right:1px solid #ddd'>${categoryType}</td>
-          <td style='border-right:1px solid #ddd'>${document.querySelector(".js-categoryRank > .websiteRanks-valueContainer").innerText}</td>
+          <td style='border-right:1px solid #ddd'>${websiteRank}</td>
           <td style='border-right:1px solid #ddd'>${country}</td>
 
           <td style='border-right:1px solid #ddd'>${topReferrals[0] ? topReferrals[0].innerText : ''}</td>
@@ -136,14 +138,73 @@
         </tr>
       </tbody>`
 
-
       document.querySelector('.app-header').prepend(table)
-
-      console.log(`${topReferrals[0].innerText} | ${topReferralsTrafficShare[0].innerText}`)
-      console.log(`${topReferrals[1].innerText} | ${topReferralsTrafficShare[1].innerText}`)
-      console.log(`${topReferrals[2].innerText} | ${topReferralsTrafficShare[2].innerText}`)
-      console.log(`${topReferrals[3].innerText} | ${topReferralsTrafficShare[3].innerText}`)
-      console.log(`${topReferrals[4].innerText} | ${topReferralsTrafficShare[4].innerText}`)
+      
+      /**
+       * traffic share breakdown
+       */
+      let traffics = '{'
+      if(document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").length > 0) {
+        document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item")
+        .forEach((v,i) => {
+          var data = v.innerText.split("\n \n")
+          traffics += `"${data[1].toLowerCase()}Traffic": ${parseFloat(data[0].replace("%\n ",""))}`
+          if(i < document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").length - 1) {
+            traffics += ','
+          }
+        })
+      }
+      traffics += '}'
+      traffics = JSON.parse(traffics)
+      
+      /**
+       * referrer traffics share chart
+       */
+      let referrals = []
+      let totalReferralsLeft = 100
+      if(document.querySelectorAll(".referralsSection .referring .websitePage-list li").length > 0) {
+        document.querySelectorAll(".referralsSection .referring .websitePage-list li").forEach((v,i)=>{
+          var data = v.innerText.split("\n")
+          referrals.push({
+            "website":data[0],
+            "sharePercent":parseFloat(data[1].replace("%",""))
+          })
+          totalReferralsLeft -= parseFloat(data[1].replace("%",""))
+        })
+      }
+      referrals.push({"website": "others", "sharePercent": totalReferralsLeft})
+      
+      /**
+       * social share chart
+       */
+      let socials = []
+      let totalSocialsLeft = 100
+      if(document.querySelectorAll(".socialList li").length > 0) {
+        document.querySelectorAll(".socialList li").forEach((v,i)=>{
+          var data = v.innerText.split("\n")
+          socials.push({"website":v.childNodes[1].dataset.sitename, "sharePercent":parseFloat(data[1].replace("%",""))})
+          totalSocialsLeft -= parseFloat(data[1].replace("%",""))
+        })
+      }
+      socials.push({"website": "others", "sharePercent": totalSocialsLeft})
+      // console.log(socials)
+      
+      let fileData = {
+        "website" : websiteName,
+        "categoryType": categoryType,
+        "categoryRank": websiteRank,
+        "country": country,
+        "visitors": parseInt(total_visitors)
+      }
+      let stringifiedData = JSON.stringify({
+        ...fileData,
+        ...traffics,
+        ...{"referrals": referrals},
+        ...{"socials": socials}
+      })
+      let website = document.querySelector(".websiteHeader-captionText").innerText
+      var file = new File(["["+stringifiedData+"]"], `${website}-similarweb-data.json`, {type: "text/plain;charset=utf-8"});
+      saveAs(file);
 
   }
 
