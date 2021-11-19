@@ -176,6 +176,7 @@
       }
       traffics += '}'
       traffics = JSON.parse(traffics)
+      // console.log(traffics)
       
       
       /**
@@ -196,6 +197,24 @@
       if(totalReferralsLeft > 0 && totalReferralsLeft < 100) {
         referrals.push({"website": "others", "sharePercent": parseFloat(totalReferralsLeft.toFixed(2))})
       }
+      // console.log(referrals)
+      
+      let destinations = []
+      let totalDestinationsLeft = 100
+      if(document.querySelectorAll(".referralsSection .destination .websitePage-list li").length > 0) {
+        document.querySelectorAll(".referralsSection .destination .websitePage-list li").forEach((v,i)=>{
+          var data = v.innerText.split("\n")
+          destinations.push({
+            "website":data[0],
+            "sharePercent": parseFloat(data[1].replace("%",""))
+          })
+          totalDestinationsLeft -= parseFloat(data[1].replace("%",""))
+        })
+      }
+      if(totalDestinationsLeft > 0 && totalDestinationsLeft < 100) {
+        destinations.push({"website": "others", "sharePercent": parseFloat(totalDestinationsLeft.toFixed(2))})
+      }
+      // console.log(destinations)
       
       /**
        * social share chart
@@ -234,6 +253,7 @@
         ...engagement,
         ...traffics,
         ...{"referrals": referrals},
+        ...{"destinations": destinations},
         ...{"socials": socials}
       }, null, 2)
 
