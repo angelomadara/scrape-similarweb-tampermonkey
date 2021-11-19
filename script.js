@@ -31,7 +31,7 @@
       country = country != null ? country.innerText : ''
 
       let categoryType = document.querySelector(".js-categoryRank .websiteRanks-nameText")
-      categoryType = categoryType != null ? categoryType.innerText.split(" ")[0] : ""
+      categoryType = categoryType != null ? categoryType.innerText : ""
 
 
       let topReferrals = document.querySelectorAll('.referring div.websitePage-listItemTitle')
@@ -141,12 +141,31 @@
       document.querySelector('.app-header').prepend(table)
       
       /**
+       * 
+       * this next section is for building JSON data for the spreadsheet
+       * 
+       */
+      
+      let engagement = "{"
+      document.querySelectorAll(".engagementInfo-line").forEach((v,i)=>{
+        var data = v.innerText.split(" \n")
+        if(i >= 1){
+          let key = data[0].trim()
+          key = key.charAt(0).toLowerCase() + key.slice(1)
+          key = key.replace(/[\. ,:-]+/g,'') // remove spaces, dots, commas, dashes, and colons
+          engagement += `"${key}":"${data[1].trim()}",`
+        }
+      })
+      engagement = engagement.substring(0, engagement.length - 1)
+      engagement += "}"
+      engagement = JSON.parse(engagement)
+      
+      /**
        * traffic share breakdown
        */
       let traffics = '{'
       if(document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").length > 0) {
-        document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item")
-        .forEach((v,i) => {
+        document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").forEach((v,i) => {
           var data = v.innerText.split("\n \n")
           traffics += `"${data[1].toLowerCase()}Traffic": ${parseFloat(data[0].replace("%\n ",""))}`
           if(i < document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").length - 1) {
@@ -172,7 +191,7 @@
           totalReferralsLeft -= parseFloat(data[1].replace("%",""))
         })
       }
-      referrals.push({"website": "others", "sharePercent": totalReferralsLeft})
+      if(totalReferralsLeft > 0) {referrals.push({"website": "others", "sharePercent": parseFloat(totalReferralsLeft.toFixed(2))})}
       
       /**
        * social share chart
@@ -186,18 +205,29 @@
           totalSocialsLeft -= parseFloat(data[1].replace("%",""))
         })
       }
-      socials.push({"website": "others", "sharePercent": totalSocialsLeft})
+      if(totalSocialsLeft > 0) { socials.push({"website": "others", "sharePercent": parseFloat(totalSocialsLeft.toFixed(2))}) }
       // console.log(socials)
+      
+      /**
+       * country rank
+       */
+      let countryRank = {
+        "country": country, 
+        "rank": parseInt(document.querySelector(".js-countryRank .js-websiteRanksValue").innerText.replace(",","").replace(" ",""))
+      }
       
       let fileData = {
         "website" : websiteName,
         "categoryType": categoryType,
         "categoryRank": websiteRank,
-        "country": country,
+        // "countryRank": country,
+        "globalRank": parseInt(document.querySelector(".js-globalRank .js-websiteRanksValue").innerText.replace(",","").replace(" ","")),
         "visitors": parseInt(total_visitors)
       }
       let stringifiedData = JSON.stringify({
         ...fileData,
+        ...engagement,
+        ...{'countryRank':countryRank},
         ...traffics,
         ...{"referrals": referrals},
         ...{"socials": socials}
@@ -210,6 +240,12 @@
 
   document.querySelector(".app-search__input").onfocus = function(){
       document.querySelector('.app-header table').remove()
+  }
+  
+  function camelize(str) {
+    return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
+      return index === 0 ? word.toLowerCase() : word.toUpperCase();
+    }).replace(/\s+/g, '');
   }
 
 })();
