@@ -104,11 +104,12 @@
       let top_5_received_referrals = isNaN(top_5_referring_site) ? 0 : (total_visitors * (referral_traffic_percent / 100)) * (top_5_referring_site / 100)
 
       let websiteRank = document.querySelector(".js-categoryRank > .websiteRanks-valueContainer").innerText
-
+      let shortCategory = categoryType.length > 0 ? categoryType.split(" ")[0] : ''
+      
       table.innerHTML = `
       <tbody>
         <tr>
-          <td style='border-right:1px solid #ddd'>${categoryType}</td>
+          <td style='border-right:1px solid #ddd'>${shortCategory}</td>
           <td style='border-right:1px solid #ddd'>${websiteRank}</td>
           <td style='border-right:1px solid #ddd'>${country}</td>
 
@@ -176,6 +177,7 @@
       traffics += '}'
       traffics = JSON.parse(traffics)
       
+      
       /**
        * referrer traffics share chart
        */
@@ -191,7 +193,9 @@
           totalReferralsLeft -= parseFloat(data[1].replace("%",""))
         })
       }
-      if(totalReferralsLeft > 0) {referrals.push({"website": "others", "sharePercent": parseFloat(totalReferralsLeft.toFixed(2))})}
+      if(totalReferralsLeft > 0 && totalReferralsLeft < 100) {
+        referrals.push({"website": "others", "sharePercent": parseFloat(totalReferralsLeft.toFixed(2))})
+      }
       
       /**
        * social share chart
@@ -205,7 +209,7 @@
           totalSocialsLeft -= parseFloat(data[1].replace("%",""))
         })
       }
-      if(totalSocialsLeft > 0) { socials.push({"website": "others", "sharePercent": parseFloat(totalSocialsLeft.toFixed(2))}) }
+      if(totalSocialsLeft > 0 && totalSocialsLeft < 100) { socials.push({"website": "others", "sharePercent": parseFloat(totalSocialsLeft.toFixed(2))}) }
       // console.log(socials)
       
       /**
@@ -226,12 +230,12 @@
       }
       let stringifiedData = JSON.stringify({
         ...fileData,
-        ...engagement,
         ...{'countryRank':countryRank},
+        ...engagement,
         ...traffics,
         ...{"referrals": referrals},
         ...{"socials": socials}
-      })
+      }, null, 2)
       let website = document.querySelector(".websiteHeader-captionText").innerText
       var file = new File(["["+stringifiedData+"]"], `${website}-similarweb-data.json`, {type: "text/plain;charset=utf-8"});
       saveAs(file);
