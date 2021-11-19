@@ -88,56 +88,39 @@
       }
       // console.log(total_visitors)
 
-      let top_1_referring_site = topReferralsTrafficShare[0] ? topReferralsTrafficShare[0].innerText.replace('%','') : ''
-      let top_2_referring_site = topReferralsTrafficShare[1] ? topReferralsTrafficShare[1].innerText.replace('%','') : ''
-      let top_3_referring_site = topReferralsTrafficShare[2] ? topReferralsTrafficShare[2].innerText.replace('%','') : ''
-      let top_4_referring_site = topReferralsTrafficShare[3] ? topReferralsTrafficShare[3].innerText.replace('%','') : ''
-      let top_5_referring_site = topReferralsTrafficShare[4] ? topReferralsTrafficShare[4].innerText.replace('%','') : ''
-
       let total_referrals = document.querySelector(".websitePage-referrals .subheading-value")
       let referral_traffic_percent = total_referrals != null ? parseFloat(total_referrals.innerText) : 0;
-
-      let top_1_received_referrals = isNaN(top_1_referring_site) ? 0 : (total_visitors * (referral_traffic_percent / 100)) * (top_1_referring_site / 100)
-      let top_2_received_referrals = isNaN(top_2_referring_site) ? 0 : (total_visitors * (referral_traffic_percent / 100)) * (top_2_referring_site / 100)
-      let top_3_received_referrals = isNaN(top_3_referring_site) ? 0 : (total_visitors * (referral_traffic_percent / 100)) * (top_3_referring_site / 100)
-      let top_4_received_referrals = isNaN(top_4_referring_site) ? 0 : (total_visitors * (referral_traffic_percent / 100)) * (top_4_referring_site / 100)
-      let top_5_received_referrals = isNaN(top_5_referring_site) ? 0 : (total_visitors * (referral_traffic_percent / 100)) * (top_5_referring_site / 100)
 
       let websiteRank = document.querySelector(".js-categoryRank > .websiteRanks-valueContainer").innerText
       let shortCategory = categoryType.length > 0 ? categoryType.split(" ")[0] : ''
       
-      table.innerHTML = `
-      <tbody>
-        <tr>
-          <td style='border-right:1px solid #ddd'>${shortCategory}</td>
-          <td style='border-right:1px solid #ddd'>${websiteRank}</td>
-          <td style='border-right:1px solid #ddd'>${country}</td>
+      let reperals = referrals()
+      
+      let tbody = `<tbody>
+                      <tr>
+                        <td style='border-right:1px solid #ddd'>${shortCategory}</td>
+                        <td style='border-right:1px solid #ddd'>${websiteRank}</td>
+                      <td style='border-right:1px solid #ddd'>${country}</td>`
 
-          <td style='border-right:1px solid #ddd'>${topReferrals[0] ? topReferrals[0].innerText : ''}</td>
-          <td style='border-right:1px solid #ddd'>${top_1_referring_site}</td>
-          <td style='border-right:1px solid #ddd'>${Math.round(top_1_received_referrals)}</td>
+      for(let i = 0; i < 5; i++) {
+        if(reperals.length > i && reperals[i].website != 'others') {
+          tbody += `<td style='border-right:1px solid #ddd'>${reperals[i].website}</td>`
+          tbody += `<td style='border-right:1px solid #ddd'>${reperals[i].sharePercent}</td>`
+          tbody += `<td style='border-right:1px solid #ddd'>${Math.ceil((total_visitors * (referral_traffic_percent / 100)) * (reperals[i].sharePercent / 100))}</td>`
+        }else{
+          tbody += `<td style='border-right:1px solid #ddd'></td>`
+          tbody += `<td style='border-right:1px solid #ddd'></td>`
+          tbody += `<td style='border-right:1px solid #ddd'></td>`
+        }
+      }
 
-          <td style='border-right:1px solid #ddd'>${topReferrals[1] ? topReferrals[1].innerText : ''}</td>
-          <td style='border-right:1px solid #ddd'>${top_2_referring_site}</td>
-          <td style='border-right:1px solid #ddd'>${Math.round(top_2_received_referrals)}</td>
-
-          <td style='border-right:1px solid #ddd'>${topReferrals[2] ? topReferrals[2].innerText : ''}</td>
-          <td style='border-right:1px solid #ddd'>${top_3_referring_site}</td>
-          <td style='border-right:1px solid #ddd'>${Math.round(top_3_received_referrals)}</td>
-
-          <td style='border-right:1px solid #ddd'>${topReferrals[3] ? topReferrals[3].innerText : ''}</td>
-          <td style='border-right:1px solid #ddd'>${top_4_referring_site}</td>
-          <td style='border-right:1px solid #ddd'>${Math.round(top_4_received_referrals)}</td>
-
-          <td style='border-right:1px solid #ddd'>${topReferrals[4] ? topReferrals[4].innerText : ''}</td>
-          <td style='border-right:1px solid #ddd'>${top_5_referring_site}</td>
-          <td style='border-right:1px solid #ddd'>${Math.round(top_5_received_referrals)}</td>
-
+      tbody += `
           <td style='border-right:1px solid #ddd'>${referral_traffic_percent}</td>
-
           <td>${total_visitors}</td>
         </tr>
       </tbody>`
+      
+      table.innerHTML = tbody
 
       document.querySelector('.app-header').prepend(table)
       
@@ -162,76 +145,6 @@
       engagement = JSON.parse(engagement)
       
       /**
-       * traffic share breakdown
-       */
-      let traffics = '{'
-      if(document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").length > 0) {
-        document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").forEach((v,i) => {
-          var data = v.innerText.split("\n \n")
-          traffics += `"${data[1].toLowerCase()}Traffic": ${parseFloat(data[0].replace("%\n ",""))}`
-          if(i < document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").length - 1) {
-            traffics += ','
-          }
-        })
-      }
-      traffics += '}'
-      traffics = JSON.parse(traffics)
-      // console.log(traffics)
-      
-      
-      /**
-       * referrer traffics share chart
-       */
-      let referrals = []
-      let totalReferralsLeft = 100
-      if(document.querySelectorAll(".referralsSection .referring .websitePage-list li").length > 0) {
-        document.querySelectorAll(".referralsSection .referring .websitePage-list li").forEach((v,i)=>{
-          var data = v.innerText.split("\n")
-          referrals.push({
-            "website":data[0],
-            "sharePercent":parseFloat(data[1].replace("%",""))
-          })
-          totalReferralsLeft -= parseFloat(data[1].replace("%",""))
-        })
-      }
-      if(totalReferralsLeft > 0 && totalReferralsLeft < 100) {
-        referrals.push({"website": "others", "sharePercent": parseFloat(totalReferralsLeft.toFixed(2))})
-      }
-      // console.log(referrals)
-      
-      let destinations = []
-      let totalDestinationsLeft = 100
-      if(document.querySelectorAll(".referralsSection .destination .websitePage-list li").length > 0) {
-        document.querySelectorAll(".referralsSection .destination .websitePage-list li").forEach((v,i)=>{
-          var data = v.innerText.split("\n")
-          destinations.push({
-            "website":data[0],
-            "sharePercent": parseFloat(data[1].replace("%",""))
-          })
-          totalDestinationsLeft -= parseFloat(data[1].replace("%",""))
-        })
-      }
-      if(totalDestinationsLeft > 0 && totalDestinationsLeft < 100) {
-        destinations.push({"website": "others", "sharePercent": parseFloat(totalDestinationsLeft.toFixed(2))})
-      }
-      // console.log(destinations)
-      
-      /**
-       * social share chart
-       */
-      let socials = []
-      let totalSocialsLeft = 100
-      if(document.querySelectorAll(".socialList li").length > 0) {
-        document.querySelectorAll(".socialList li").forEach((v,i)=>{
-          var data = v.innerText.split("\n")
-          socials.push({"website":v.childNodes[1].dataset.sitename, "sharePercent":parseFloat(data[1].replace("%",""))})
-          totalSocialsLeft -= parseFloat(data[1].replace("%",""))
-        })
-      }
-      if(totalSocialsLeft > 0 && totalSocialsLeft < 100) { socials.push({"website": "others", "sharePercent": parseFloat(totalSocialsLeft.toFixed(2))}) }
-      // console.log(socials)
-      
-      /**
        * country rank
        */
       let countryRank = {
@@ -251,10 +164,10 @@
         ...fileData,
         ...{'countryRank':countryRank},
         ...engagement,
-        ...traffics,
-        ...{"referrals": referrals},
-        ...{"destinations": destinations},
-        ...{"socials": socials}
+        ...traffics(),
+        ...{"referrals": referrals()},
+        ...{"destinations": destinations()},
+        ...{"socials": socials()}
       }, null, 2)
 
       let website = document.querySelector(".websiteHeader-captionText").innerText
@@ -268,6 +181,88 @@
 
   document.querySelector(".app-search__input").onfocus = function(){
       document.querySelector('.app-header table').remove()
+  }
+  
+  /**
+   * 
+   * @returns traffic data
+   */
+  function traffics(){
+    let traffics = '{'
+    if(document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").length > 0) {
+      document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").forEach((v,i) => {
+        var data = v.innerText.split("\n \n")
+        traffics += `"${data[1].toLowerCase()}Traffic": ${parseFloat(data[0].replace("%\n ",""))}`
+        if(i < document.querySelectorAll("div.trafficSourcesChart > ul > li.trafficSourcesChart-item").length - 1) {
+          traffics += ','
+        }
+      })
+    }
+    traffics += '}'
+    traffics = JSON.parse(traffics)
+    // console.log(traffics)
+    return traffics
+  }
+  
+  /**
+   * referrer traffics share chart
+   */
+  function referrals(){
+    let referrals = []
+    let totalReferralsLeft = 100
+    if(document.querySelectorAll(".referralsSection .referring .websitePage-list li").length > 0) {
+      document.querySelectorAll(".referralsSection .referring .websitePage-list li").forEach((v,i)=>{
+        var data = v.innerText.split("\n")
+        referrals.push({
+          "website":data[0],
+          "sharePercent":parseFloat(data[1].replace("%",""))
+        })
+        totalReferralsLeft -= parseFloat(data[1].replace("%",""))
+      })
+    }
+    if(totalReferralsLeft > 0 && totalReferralsLeft < 100) {
+      referrals.push({"website": "others", "sharePercent": parseFloat(totalReferralsLeft.toFixed(2))})
+    }
+    // console.log(referrals)
+    return referrals
+  }
+  
+  function destinations(){
+    let destinations = []
+    let totalDestinationsLeft = 100
+    if(document.querySelectorAll(".referralsSection .destination .websitePage-list li").length > 0) {
+      document.querySelectorAll(".referralsSection .destination .websitePage-list li").forEach((v,i)=>{
+        var data = v.innerText.split("\n")
+        destinations.push({
+          "website":data[0],
+          "sharePercent": parseFloat(data[1].replace("%",""))
+        })
+        totalDestinationsLeft -= parseFloat(data[1].replace("%",""))
+      })
+    }
+    if(totalDestinationsLeft > 0 && totalDestinationsLeft < 100) {
+      destinations.push({"website": "others", "sharePercent": parseFloat(totalDestinationsLeft.toFixed(2))})
+    }
+    // console.log(destinations)
+    return destinations
+  }
+  
+  /**
+   * social share chart
+   */
+  function socials(){
+     let socials = []
+     let totalSocialsLeft = 100
+     if(document.querySelectorAll(".socialList li").length > 0) {
+       document.querySelectorAll(".socialList li").forEach((v,i)=>{
+         var data = v.innerText.split("\n")
+         socials.push({"website":v.childNodes[1].dataset.sitename, "sharePercent":parseFloat(data[1].replace("%",""))})
+         totalSocialsLeft -= parseFloat(data[1].replace("%",""))
+       })
+     }
+     if(totalSocialsLeft > 0 && totalSocialsLeft < 100) { socials.push({"website": "others", "sharePercent": parseFloat(totalSocialsLeft.toFixed(2))}) }
+     // console.log(socials)
+     return socials
   }
 
 })();
