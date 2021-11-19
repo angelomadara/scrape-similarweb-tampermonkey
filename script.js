@@ -236,7 +236,11 @@
         ...{"referrals": referrals},
         ...{"socials": socials}
       }, null, 2)
+
       let website = document.querySelector(".websiteHeader-captionText").innerText
+      /**
+       * save json on a text file
+       */
       var file = new File(["["+stringifiedData+"]"], `${website}-similarweb-data.json`, {type: "text/plain;charset=utf-8"});
       saveAs(file);
 
