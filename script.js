@@ -43,6 +43,7 @@
       table.style.fontSize = '12px'
       table.style.width = '80%'
       table.style.border = '1px solid #ddd'
+      table.setAttribute('id','table-incomming-traffics')
 
       let total_visits = document.querySelector(".engagementInfo-valueNumber")
       total_visits = total_visits != null ? total_visits.innerText : 0
@@ -177,6 +178,8 @@
       var file = new File(["["+stringifiedData+"]"], `${website}-similarweb-data.json`, {type: "text/plain;charset=utf-8"});
       saveAs(file);
 
+      copyTable();
+
   }
 
   document.querySelector(".app-search__input").onfocus = function(){
@@ -263,6 +266,16 @@
      if(totalSocialsLeft > 0 && totalSocialsLeft < 100) { socials.push({"website": "others", "sharePercent": parseFloat(totalSocialsLeft.toFixed(2))}) }
      // console.log(socials)
      return socials
+  }
+
+  function copyTable() {
+    var copyText = document.querySelector("#table-incomming-traffics > tbody > tr")
+    var range = document.createRange();
+    var selection = window.getSelection();
+    range.selectNodeContents(copyText);  
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.execCommand("copy");
   }
 
 })();
